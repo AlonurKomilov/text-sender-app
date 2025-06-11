@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Sender Dashboard</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom styles for the dark theme and font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Defining the custom color palette from the design */
+        .bg-dark-100 { background-color: #1a1a2e; } /* Main content background */
+        .bg-dark-200 { background-color: #16213e; } /* Card background */
+        .bg-dark-300 { background-color: #0f3460; } /* Sidebar background */
+        .bg-accent-100 { background-color: #e94560; } /* Primary button color */
+        .bg-accent-200 { background-color: #d63447; } /* Primary button hover color */
+        .border-gray-700 { border-color: #2a3b5a; }
+        .text-gray-300 { color: #c0c0c0; }
+        .text-gray-400 { color: #a0a0a0; }
+        
+        /* Custom scrollbar for a better look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #2a3b5a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a4b6a; }
+        
+        /* Styling for the active sidebar item */
+        .sidebar-item.active {
+            background-color: #1a1a2e;
+            border-left: 3px solid #e94560;
+        }
+
+        /* Notification Toast styles */
+        .toast {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: translateX(100%);
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Style for the datetime-local calendar icon */
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body class="bg-dark-100 text-white">
+
+<!-- Main Application Wrapper -->
+<div class="flex h-screen bg-dark-300">
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 flex-shrink-0 bg-dark-300 overflow-y-auto hidden md:block">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-white tracking-wider">TxtSender</h1>
+        </div>
+        <nav class="mt-6">
+            <a href="#" class="sidebar-item flex items-center py-3 px-6 text-gray-300 hover:bg-dark-200 active" data-section="dashboard-section">
+                <i class="fas fa-tachometer-alt w-6 text-center"></i>
+                <span class="ml-4">Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-item flex items-center py-3 px-6 text-gray-300 hover:bg-dark-200" data-section="saved-messages-section">
+                <i class="fas fa-envelope-open-text w-6 text-center"></i>
+                <span class="ml-4">Saved Messages</span>
+            </a>
+            <a href="#" class="sidebar-item flex items-center py-3 px-6 text-gray-300 hover:bg-dark-200" data-section="twilio-settings-section">
+                <i class="fas fa-cogs w-6 text-center"></i>
+                <span class="ml-4">Twilio Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Navigation -->
+        <header class="bg-dark-200 border-b border-gray-700 shadow-sm">
+            <div class="flex items-center justify-between p-4">
+                <div class="flex items-center">
+                    <button id="mobile-menu-button" class="mr-4 text-gray-300 md:hidden"><i class="fas fa-bars text-xl"></i></button>
+                    <h2 id="header-title" class="text-xl font-semibold text-white">Dashboard</h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-300 hover:text-white"><i class="fas fa-bell"></i></button>
+                    <button class="text-gray-300 hover:text-white"><i class="fas fa-question-circle"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto bg-dark-100 p-6">
+            <!-- Dashboard Section -->
+             <div id="dashboard-section" class="content-section">
+                <!-- Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="card bg-dark-200 rounded-lg shadow-md p-6 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400">Total Messages Sent</p>
+                                <h3 class="text-3xl font-bold text-white mt-1">12,543</h3>
+                                <p class="text-sm text-green-400 mt-2"><i class="fas fa-arrow-up mr-1"></i><span>12% from last month</span></p>
+                            </div>
+                            <div class="bg-blue-500 bg-opacity-20 p-3 rounded-full"><i class="fas fa-paper-plane text-2xl text-blue-500"></i></div>
+                        </div>
+                    </div>
+                    <div class="card bg-dark-200 rounded-lg shadow-md p-6 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400">Pending Messages</p>
+                                <h3 class="text-3xl font-bold text-white mt-1">245</h3>
+                                <p class="text-sm text-yellow-400 mt-2"><i class="fas fa-clock mr-1"></i><span>Scheduled for today</span></p>
+                            </div>
+                            <div class="bg-yellow-500 bg-opacity-20 p-3 rounded-full"><i class="fas fa-hourglass-half text-2xl text-yellow-500"></i></div>
+                        </div>
+                    </div>
+                    <div class="card bg-dark-200 rounded-lg shadow-md p-6 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400">Errors</p>
+                                <h3 class="text-3xl font-bold text-white mt-1">18</h3>
+                                <p class="text-sm text-red-400 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i><span>Needs attention</span></p>
+                            </div>
+                            <div class="bg-red-500 bg-opacity-20 p-3 rounded-full"><i class="fas fa-exclamation-circle text-2xl text-red-500"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Twilio Status -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                     <div class="bg-dark-200 rounded-lg shadow-md border border-gray-700">
+                        <div class="p-6 border-b border-gray-700"><h3 class="text-lg font-semibold text-white">Quick Actions</h3></div>
+                        <div class="p-6 grid grid-cols-2 gap-4">
+                            <button id="send-message-btn" class="btn bg-accent-100 hover:bg-accent-200 text-white py-3 px-4 rounded-lg flex items-center justify-center"><i class="fas fa-paper-plane mr-2"></i>Send Message</button>
+                            <button id="upload-contacts-btn" class="btn bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg flex items-center justify-center"><i class="fas fa-upload mr-2"></i>Upload Contacts</button>
+                        </div>
+                    </div>
+                    <div class="bg-dark-200 rounded-lg shadow-md border border-gray-700">
+                        <div class="p-6 border-b border-gray-700"><h3 class="text-lg font-semibold text-white">Twilio Status</h3></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4"><div class="flex items-center"><div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div><span class="text-sm text-white">API Connection</span></div><span class="text-sm text-green-400">Active</span></div>
+                            <div class="flex items-center justify-between mb-4"><div class="flex items-center"><div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div><span class="text-sm text-white">Account Balance</span></div><span class="text-sm text-white">$245.50</span></div>
+                            <div class="mt-4 pt-4 border-t border-gray-700"><button id="configure-twilio-btn" class="btn w-full bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg flex items-center justify-center"><i class="fas fa-cog mr-2"></i>Configure Twilio</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Messages Section -->
+            <div id="saved-messages-section" class="content-section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-white">Message Templates</h2>
+                    <button id="add-message-btn" class="btn bg-accent-100 hover:bg-accent-200 text-white py-2 px-4 rounded-lg flex items-center"><i class="fas fa-plus mr-2"></i>Add New Template</button>
+                </div>
+                <div class="bg-dark-200 rounded-lg shadow-md border border-gray-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left bg-dark-300"><th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Name</th><th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Message</th><th class="px-6 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th></tr>
+                            </thead>
+                            <tbody id="saved-messages-table" class="divide-y divide-gray-700">
+                                <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Twilio Settings Section -->
+            <div id="twilio-settings-section" class="content-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white">Twilio Configuration</h2>
+                    <p class="text-gray-400 mt-1">Configure your Twilio API credentials to send messages</p>
+                </div>
+                <div class="bg-dark-200 rounded-lg shadow-md border border-gray-700 p-6">
+                    <form id="twilio-settings-form">
+                        <div class="mb-6"><label for="account_sid" class="block text-sm font-medium text-gray-300 mb-2">Account SID</label><input type="text" id="account_sid" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" value="ACa2552d787f256da1ad0a143eb8f50980"></div>
+                        <div class="mb-6"><label for="auth_token" class="block text-sm font-medium text-gray-300 mb-2">Auth Token</label><input type="password" id="auth_token" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white" placeholder="Your Twilio Auth Token" value="a2bbb3715dd600abbe7e5b31fa193df9"></div>
+                        <div class="mb-6"><label for="phone_number" class="block text-sm font-medium text-gray-300 mb-2">Twilio Phone Number</label><input type="text" id="phone_number" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white" placeholder="+1234567890" value="+19498327439"></div>
+                        <div class="flex justify-end"><button type="submit" class="btn bg-accent-100 hover:bg-accent-200 text-white py-2 px-4 rounded-lg">Save Settings</button></div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- All Modals Here -->
+<div id="send-message-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+    <div class="modal w-full max-w-lg bg-dark-200 rounded-lg shadow-lg border border-gray-700 z-10">
+        <div class="p-6 border-b border-gray-700 flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-white">Send Message</h3>
+            <button class="close-modal text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-6">
+            <form id="send-message-form">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Recipient Type</label>
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <input type="radio" id="single-recipient" name="recipient-type" value="single" class="mr-2" checked>
+                            <label for="single-recipient" class="text-sm text-gray-300">Single Number</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="bulk-recipient" name="recipient-type" value="bulk" class="mr-2">
+                            <label for="bulk-recipient" id="bulk-recipient-label" class="text-sm text-gray-300">Bulk Campaign (0 Contacts)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="single-recipient-field" class="mb-6">
+                    <label for="recipient_phone" class="block text-sm font-medium text-gray-300 mb-2">Recipient Phone Number</label>
+                    <input type="text" id="recipient_phone" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white" placeholder="+15551234567">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="template-select" class="block text-sm font-medium text-gray-300 mb-2">Use a Template (Optional)</label>
+                    <select id="template-select" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                        <option value="">Select a template...</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="message_content" class="block text-sm font-medium text-gray-300 mb-2">Message</label>
+                    <textarea id="message_content" rows="5" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white" placeholder="Type your message here..." required></textarea>
+                    <div id="personalization-tags" class="hidden flex-wrap gap-2 mt-2">
+                        <!-- Tags like {name} will be added here -->
+                    </div>
+                </div>
+                <div id="schedule-wrapper" class="hidden mb-6 p-4 bg-dark-100 rounded-lg">
+                     <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="schedule-toggle" class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-100"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-300">Schedule for later</span>
+                    </label>
+                    <div id="schedule-container" class="hidden mt-4">
+                        <input type="datetime-local" id="schedule-time" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="close-modal btn bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg mr-3">Cancel</button>
+                    <button type="submit" id="send-campaign-btn" class="btn bg-accent-100 hover:bg-accent-200 text-white py-2 px-4 rounded-lg flex items-center justify-center">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="message-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+    <div class="modal w-full max-w-lg bg-dark-200 rounded-lg shadow-lg border border-gray-700 z-10">
+        <div class="p-6 border-b border-gray-700 flex items-center justify-between">
+            <h3 id="message-modal-title" class="text-xl font-semibold text-white">Add New Template</h3>
+            <button class="close-modal text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-6">
+            <form id="message-form">
+                <input type="hidden" id="message-id">
+                <div class="mb-6">
+                    <label for="message-name" class="block text-sm font-medium text-gray-300 mb-2">Template Name</label>
+                    <input type="text" id="message-name" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white" placeholder="e.g., Welcome Message" required>
+                </div>
+                <div class="mb-6">
+                    <label for="message-text" class="block text-sm font-medium text-gray-300 mb-2">Template Content</label>
+                    <textarea id="message-text" rows="5" class="w-full bg-dark-300 border border-gray-600 rounded-lg px-4 py-2 text-white" placeholder="Type your message here..." required></textarea>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="close-modal btn bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg mr-3">Cancel</button>
+                    <button type="submit" class="btn bg-accent-100 hover:bg-accent-200 text-white py-2 px-4 rounded-lg">Save Template</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="upload-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+    <div class="modal w-full max-w-lg bg-dark-200 rounded-lg shadow-lg border border-gray-700 z-10">
+        <div class="p-6 border-b border-gray-700 flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-white">Upload Contacts</h3>
+            <button class="close-modal text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <p class="text-gray-400">Upload a CSV file with a header row.</p>
+                <button id="download-template-btn" class="text-sm text-blue-400 hover:text-blue-300 font-semibold flex items-center">
+                    <i class="fas fa-download mr-2"></i>
+                    Download Template
+                </button>
+            </div>
+            <input type="file" id="csv-file-input" accept=".csv" class="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent-100 file:text-white hover:file:bg-accent-200"/>
+            <div class="mt-4 flex justify-end">
+                 <button id="process-csv-btn" class="btn bg-accent-100 hover:bg-accent-200 text-white py-2 px-4 rounded-lg flex items-center justify-center">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm"></div>
+    <div class="modal w-full max-w-sm bg-dark-200 rounded-lg shadow-lg border border-gray-700 z-10">
+        <div class="p-6 text-center">
+            <h3 id="confirm-title" class="text-lg font-semibold text-white mb-2">Are you sure?</h3>
+            <p id="confirm-text" class="text-sm text-gray-400 mb-6">You won't be able to revert this!</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-cancel-btn" class="btn bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 rounded-lg">Cancel</button>
+                <button id="confirm-delete-btn" class="btn bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg">Yes, delete it!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Toast Container -->
+<div id="toast-container" class="fixed top-5 right-5 z-50 space-y-3 w-full max-w-xs"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- STATE MANAGEMENT ---
+    let savedMessages = [
+        { id: 1, name: 'Welcome Message', text: "Hello {name}, welcome to our service!" },
+        { id: 2, name: 'Appointment Reminder', text: 'Hi {name}, this is a reminder about your appointment on {date} at {time} from {company}.' }
+    ];
+    let contactList = [];
+    let contactHeaders = [];
+
+    // --- DOM ELEMENTS ---
+    const modals = {
+        send: document.getElementById('send-message-modal'),
+        message: document.getElementById('message-modal'),
+        upload: document.getElementById('upload-modal'),
+        confirm: document.getElementById('confirm-modal')
+    };
+    const forms = {
+        sendMessage: document.getElementById('send-message-form'),
+        message: document.getElementById('message-form'),
+        twilioSettings: document.getElementById('twilio-settings-form')
+    };
+    
+    // --- UTILITY FUNCTIONS ---
+    const openModal = (modal) => modal.classList.remove('hidden');
+    const closeModal = (modal) => modal.classList.add('hidden');
+
+    const showToast = (message, type = 'success') => {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-times-circle';
+
+        toast.className = `toast ${bgColor} text-white text-sm font-bold px-4 py-3 rounded-lg shadow-lg flex items-center`;
+        toast.innerHTML = `<i class="fas ${icon} mr-2"></i><p>${message}</p>`;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    };
+    
+    const setButtonLoading = (button, text = 'Loading...') => {
+        button.disabled = true;
+        button.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${text}`;
+    };
+
+    const resetButton = (button, text) => {
+        button.disabled = false;
+        button.innerHTML = text;
+    };
+
+    // --- MODAL HANDLING ---
+    document.querySelectorAll('.close-modal').forEach(btn => btn.closest('.modal') && btn.addEventListener('click', () => closeModal(btn.closest('.fixed'))));
+    
+    document.getElementById('send-message-btn').addEventListener('click', () => {
+        populateTemplateSelector();
+        updateRecipientUI();
+        openModal(modals.send);
+    });
+
+    document.getElementById('upload-contacts-btn').addEventListener('click', () => openModal(modals.upload));
+    document.getElementById('add-message-btn').addEventListener('click', () => {
+        document.getElementById('message-modal-title').textContent = 'Add New Template';
+        forms.message.reset();
+        document.getElementById('message-id').value = '';
+        openModal(modals.message);
+    });
+    document.getElementById('confirm-cancel-btn').addEventListener('click', () => closeModal(modals.confirm));
+
+    // --- RECIPIENT TYPE UI ---
+    const singleRecipientField = document.getElementById('single-recipient-field');
+    const bulkRecipientLabel = document.getElementById('bulk-recipient-label');
+    const personalizationTagsContainer = document.getElementById('personalization-tags');
+    const scheduleWrapper = document.getElementById('schedule-wrapper');
+    const sendCampaignBtn = document.getElementById('send-campaign-btn');
+    
+    const updateRecipientUI = () => {
+        const recipientType = document.querySelector('input[name="recipient-type"]:checked').value;
+        
+        bulkRecipientLabel.textContent = `Bulk Campaign (${contactList.length} Contacts)`;
+        document.getElementById('bulk-recipient').disabled = contactList.length === 0;
+
+        if (recipientType === 'single') {
+            singleRecipientField.style.display = 'block';
+            document.getElementById('recipient_phone').required = true;
+            personalizationTagsContainer.classList.add('hidden');
+            scheduleWrapper.classList.add('hidden');
+            sendCampaignBtn.textContent = 'Send Message';
+
+        } else { // bulk
+            singleRecipientField.style.display = 'none';
+            document.getElementById('recipient_phone').required = false;
+            personalizationTagsContainer.classList.remove('hidden');
+            scheduleWrapper.classList.remove('hidden');
+            sendCampaignBtn.textContent = `Send to ${contactList.length} Contacts`;
+            buildPersonalizationTags();
+        }
+    };
+    
+    document.querySelectorAll('input[name="recipient-type"]').forEach(radio => {
+        radio.addEventListener('change', updateRecipientUI);
+    });
+
+    // --- SCHEDULING UI ---
+    const scheduleToggle = document.getElementById('schedule-toggle');
+    const scheduleContainer = document.getElementById('schedule-container');
+    scheduleToggle.addEventListener('change', () => {
+        scheduleContainer.classList.toggle('hidden', !scheduleToggle.checked);
+    });
+
+    // --- PERSONALIZATION ---
+    const messageContentArea = document.getElementById('message_content');
+
+    const buildPersonalizationTags = () => {
+        personalizationTagsContainer.innerHTML = '';
+        if (contactHeaders.length > 0) {
+            const info = document.createElement('span');
+            info.className = 'text-xs text-gray-400 self-center';
+            info.textContent = 'Click to insert:';
+            personalizationTagsContainer.appendChild(info);
+        }
+        contactHeaders.forEach(header => {
+            const tag = document.createElement('button');
+            tag.type = 'button';
+            tag.className = 'bg-dark-300 text-xs text-gray-300 px-2 py-1 rounded hover:bg-accent-100';
+            tag.textContent = `{${header}}`;
+            tag.onclick = () => {
+                const { value, selectionStart, selectionEnd } = messageContentArea;
+                messageContentArea.value = value.slice(0, selectionStart) + `{${header}}` + value.slice(selectionEnd);
+                messageContentArea.focus();
+            };
+            personalizationTagsContainer.appendChild(tag);
+        });
+    };
+    
+    // --- CONTACT UPLOAD ---
+    document.getElementById('process-csv-btn').addEventListener('click', (e) => {
+        const fileInput = document.getElementById('csv-file-input');
+        const file = fileInput.files[0];
+        const submitBtn = e.target;
+        const originalText = submitBtn.innerHTML;
+
+        if (!file) {
+            showToast('Please select a CSV file first.', 'error');
+            return;
+        }
+        
+        setButtonLoading(submitBtn, 'Uploading...');
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const text = event.target.result;
+                const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+                if (lines.length < 2) throw new Error('CSV must have a header and at least one data row.');
+                
+                contactHeaders = lines[0].split(/[\t,]/).map(h => h.trim().toLowerCase().replace(/[{}"']/g, ''));
+                
+                const phoneIndex = contactHeaders.indexOf('phonenumber');
+                if (phoneIndex === -1) throw new Error("CSV must contain a 'phonenumber' column header.");
+                
+                contactList = lines.slice(1).map(line => {
+                    const columns = line.split(/[\t,]/);
+                    const contact = {};
+                    contactHeaders.forEach((header, index) => {
+                        contact[header] = columns[index] ? columns[index].trim() : '';
+                    });
+                    
+                    if (contact.phonenumber && !contact.phonenumber.startsWith('+')) {
+                        contact.phonenumber = '+' + contact.phonenumber;
+                    }
+                    return contact;
+                }).filter(contact => contact.phonenumber);
+                
+                resetButton(submitBtn, originalText);
+                closeModal(modals.upload);
+                showToast(`${contactList.length} contacts uploaded successfully!`);
+                fileInput.value = '';
+            } catch (error) {
+                resetButton(submitBtn, originalText);
+                showToast(error.message, 'error');
+            }
+        };
+        reader.onerror = () => {
+             resetButton(submitBtn, originalText);
+             showToast('Failed to read the file.', 'error');
+        };
+        setTimeout(() => reader.readAsText(file), 500);
+    });
+
+    document.getElementById('download-template-btn').addEventListener('click', () => {
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + "name,phonenumber,email,date,time,company,code\n"
+            + "John Smith,+15551234567,john@example.com,2024-10-21,10:00 AM,TechCorp,FALL20\n"
+            + "Jane Doe,+15557654321,jane@example.com,2024-10-22,02:30 PM,HealthCo,WELCOME15\n";
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "contact_template.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+    
+    // --- SEND MESSAGE & TEMPLATES ---
+    const templateSelect = document.getElementById('template-select');
+
+    const populateTemplateSelector = () => {
+        templateSelect.innerHTML = '<option value="">Select a template...</option>';
+        savedMessages.forEach(msg => {
+            const option = document.createElement('option');
+            option.value = msg.id;
+            option.textContent = msg.name;
+            templateSelect.appendChild(option);
+        });
+    };
+
+    templateSelect.addEventListener('change', (e) => {
+        const selectedId = e.target.value;
+        if (selectedId) {
+            const selectedMessage = savedMessages.find(msg => msg.id == selectedId);
+            messageContentArea.value = selectedMessage.text;
+        }
+    });
+
+    forms.sendMessage.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        const message = messageContentArea.value;
+        const recipientType = document.querySelector('input[name="recipient-type"]:checked').value;
+        
+        let endpoint = '';
+        let payload = {};
+        let originalButtonText = '';
+        
+        if(recipientType === 'bulk') {
+            const isScheduled = scheduleToggle.checked;
+            const scheduleTime = isScheduled ? document.getElementById('schedule-time').value : null;
+
+            if (isScheduled && !scheduleTime) {
+                showToast('Please select a date and time for scheduling.', 'error');
+                return;
+            }
+            if (contactList.length === 0) {
+                showToast('Contact list is empty.', 'error');
+                return;
+            }
+            
+            endpoint = '/send-advanced-bulk';
+            payload = { contacts: contactList, message, scheduleTime };
+            originalButtonText = `Send to ${contactList.length} Contacts`;
+            setButtonLoading(submitBtn, isScheduled ? 'Scheduling...' : 'Sending...');
+        } else { // single
+            let recipient = document.getElementById('recipient_phone').value.trim();
+            if (recipient && !recipient.startsWith('+')) {
+                recipient = '+' + recipient;
+            }
+            if (!recipient) {
+                showToast('Please enter a recipient phone number.', 'error');
+                return;
+            }
+            endpoint = '/send-message';
+            payload = { recipient, message };
+            originalButtonText = 'Send Message';
+            setButtonLoading(submitBtn, 'Sending...');
+        }
+        
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            showToast(data.message, data.success ? 'success' : 'error');
+            if (data.success) {
+                closeModal(modals.send);
+                forms.sendMessage.reset();
+                scheduleContainer.classList.add('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred. Could not connect to the server.', 'error');
+        })
+        .finally(() => {
+            resetButton(submitBtn, originalButtonText);
+        });
+    });
+
+    // --- NAVIGATION & OTHER LISTENERS ---
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    const contentSections = document.querySelectorAll('.content-section');
+    const headerTitle = document.getElementById('header-title');
+
+    const switchSection = (sectionId) => {
+        sidebarItems.forEach(item => item.classList.toggle('active', item.dataset.section === sectionId));
+        contentSections.forEach(section => section.classList.toggle('hidden', section.id !== sectionId));
+        const activeItem = document.querySelector(`.sidebar-item.active`);
+        if (activeItem) {
+            headerTitle.textContent = activeItem.querySelector('span').textContent;
+        }
+    };
+
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection(item.dataset.section);
+        });
+    });
+    
+    document.getElementById('configure-twilio-btn').addEventListener('click', () => switchSection('twilio-settings-section'));
+
+    const renderMessages = () => { 
+        const tableBody = document.getElementById('saved-messages-table');
+        tableBody.innerHTML = '';
+        if (savedMessages.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">No saved templates yet.</td></tr>';
+            return;
+        }
+        savedMessages.forEach(msg => {
+            const row = document.createElement('tr');
+            row.dataset.id = msg.id;
+            row.innerHTML = `
+                <td class="px-6 py-4 text-sm text-white">${msg.name}</td>
+                <td class="px-6 py-4 text-sm text-gray-300">${msg.text.substring(0, 50)}...</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button class="edit-btn text-blue-400 hover:text-blue-300 mr-3"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+     };
+    forms.message.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        setButtonLoading(submitBtn, 'Saving...');
+
+        setTimeout(() => {
+            const id = document.getElementById('message-id').value;
+            const name = document.getElementById('message-name').value;
+            const text = document.getElementById('message-text').value;
+
+            if (id) {
+                const index = savedMessages.findIndex(msg => msg.id == id);
+                savedMessages[index] = { ...savedMessages[index], name, text };
+            } else {
+                const newId = savedMessages.length > 0 ? Math.max(...savedMessages.map(m => m.id)) + 1 : 1;
+                savedMessages.push({ id: newId, name, text });
+            }
+            
+            renderMessages();
+            resetButton(submitBtn, originalText);
+            closeModal(modals.message);
+            showToast('Template saved successfully!');
+        }, 500);
+     });
+    document.getElementById('saved-messages-table').addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        if (!row) return;
+        const messageId = row.dataset.id;
+        
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            openModal(modals.confirm);
+            
+            const newConfirmBtn = confirmDeleteBtn.cloneNode(true);
+            confirmDeleteBtn.parentNode.replaceChild(newConfirmBtn, confirmDeleteBtn);
+
+            newConfirmBtn.addEventListener('click', () => {
+                setButtonLoading(newConfirmBtn, 'Deleting...');
+                setTimeout(() => {
+                    savedMessages = savedMessages.filter(msg => msg.id != messageId);
+                    renderMessages();
+                    resetButton(newConfirmBtn, 'Yes, delete it!');
+                    closeModal(modals.confirm);
+                    showToast('Template deleted.', 'success');
+                }, 500);
+            });
+        }
+        
+        const editBtn = e.target.closest('.edit-btn');
+        if (editBtn) {
+            const msg = savedMessages.find(m => m.id == messageId);
+            document.getElementById('message-modal-title').textContent = 'Edit Template';
+            document.getElementById('message-id').value = msg.id;
+            document.getElementById('message-name').value = msg.name;
+            document.getElementById('message-text').value = msg.text;
+            openModal(modals.message);
+        }
+     });
+    forms.twilioSettings.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const saveBtn = forms.twilioSettings.querySelector('button[type="submit"]');
+        const originalText = saveBtn.innerHTML;
+        setButtonLoading(saveBtn, 'Saving...');
+        
+        setTimeout(() => {
+            resetButton(saveBtn, originalText);
+            showToast('Twilio settings saved!');
+        }, 1000);
+     });
+
+    // --- INITIAL RENDER ---
+    renderMessages();
+});
+</script>
+
+</body>
+</html>
